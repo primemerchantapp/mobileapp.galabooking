@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+body {
+  font-family: theme('fontFamily.sans');
+  background-color: theme('colors.secondary.DEFAULT');
+}
+
+/* Common Components */
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary-white text-primary border border-primary px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-sm overflow-hidden;
+  }
+
+  .form-input {
+    @apply w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary/50;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+
+  .header-container {
+    @apply sticky top-0 z-50 bg-white border-b shadow-sm;
+  }
+
+  .loading-overlay {
+    @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50;
+  }
+
+  .loading-spinner {
+    @apply inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em];
+  }
+
+  .nav-link {
+    @apply flex flex-col items-center text-gray-500 hover:text-primary transition-colors duration-200;
+  }
+
+  .nav-link.active {
+    @apply text-primary;
+  }
+
+  /* Bottom Navigation */
+  .bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t shadow py-2;
+  }
+
+  .bottom-nav-container {
+    @apply flex justify-around;
+  }
+}
+
+/* Utility classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* OTP Input Component */
+.otp-digit-group {
+  @apply flex justify-center gap-2 mt-3;
+}
+
+.otp-digit-input {
+  @apply w-10 h-10 border border-gray-300 rounded text-center text-lg appearance-none;
+}
+
+.otp-digit-input::-webkit-outer-spin-button,
+.otp-digit-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.otp-digit-input:focus {
+  @apply outline-none ring-2 ring-primary/50 border-primary;
+}
+
+/* Snackbar Component */
+.snackbar {
+  @apply invisible fixed left-1/2 bottom-8 z-50 min-w-[250px] -ml-[125px] bg-accent-black text-white text-center p-4 text-base rounded;
+}
+
+.snackbar.show {
+  @apply visible;
+  animation: snackbar-fadein 0.5s, snackbar-fadeout 0.5s 2.5s;
+}
+
+@keyframes snackbar-fadein {
+  from {
+    @apply bottom-0 opacity-0;
+  }
+  to {
+    @apply bottom-8 opacity-100;
+  }
+}
+
+@keyframes snackbar-fadeout {
+  from {
+    @apply bottom-8 opacity-100;
+  }
+  to {
+    @apply bottom-0 opacity-0;
+  }
+}

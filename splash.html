@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gala Booking</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1A1A1A; /* Dark background matching logo */
+            overflow: hidden;
+        }
+        .splash-container {
+            text-align: center;
+            opacity: 0;
+            animation: fadeInOut 4s ease-in-out forwards;
+        }
+        .logo {
+            width: 200px;
+            height: auto;
+            animation: scale 4s ease-in-out;
+        }
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            20% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            80% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.2);
+            }
+        }
+        @keyframes scale {
+            0% {
+                transform: scale(0.8);
+            }
+            20% {
+                transform: scale(1);
+            }
+            80% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(1.2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="splash-container">
+        <img src="/workspaces/mobileapp.galabooking/assets/css/images/logo/gala-logo.png" alt="Gala Logo" class="logo">
+    </div>
+    <script>
+        setTimeout(() => {
+            window.location.href = 'onboarding.html';
+        }, 4000);
+    </script>
+</body>
+</html>

@@ -1,201 +1,196 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Verify OTP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Gala&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Gala', sans-serif;
-        }
-        .snackbar {
-            visibility: hidden;
-            min-width: 250px;
-            margin-left: -125px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 2px;
-            padding: 16px;
-            position: fixed;
-            z-index: 1;
-            left: 50%;
-            bottom: 30px;
-            font-size: 17px;
-        }
-        .snackbar.show {
-            visibility: visible;
-            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-            animation: fadein 0.5s, fadeout 0.5s 2.5s;
-        }
-        @-webkit-keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
-        }
-        @keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
-        }
-        @-webkit-keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
-        }
-        @keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
-        }
-        .otp-digit-group {
-            display: flex; /* Use flexbox for horizontal arrangement */
-            justify-content: center; /* Center the digits */
-            gap: 8px; /* Spacing between digit inputs */
-            margin-top: 10px; /* Space from the label */
-        }
-        .otp-digit-input {
-            width: 40px; /* Adjust as needed */
-            height: 40px; /* Adjust as needed */
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            text-align: center;
-            font-size: 1.2em;
-            -webkit-appearance: textfield; /* For consistent styling in Safari */
-            appearance: textfield;
-            -moz-appearance: textfield;
-        }
-        .otp-digit-input::-webkit-outer-spin-button,
-        .otp-digit-input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0; /* Remove arrows in number input for Chrome */
-        }
-        .otp-digit-input[type=number] {
-            -moz-appearance: textfield; /* Remove arrows in number input for Firefox */
-        }
-
-
-    </style>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/css2?family=Gala&display=swap" rel="stylesheet" />
+    <link href="assets/css/main.css" rel="stylesheet" />
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
     <!-- Add Firebase products that you want to use -->
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
     <script>
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-    const firebaseConfig = {
-      apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
-      authDomain: "ces-project-f8b4e.firebaseapp.com",
-      databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "ces-project-f8b4e",
-      storageBucket: "ces-project-f8b4e.firebasestorage.app",
-      messagingSenderId: "580767851656",
-      appId: "1:580767851656:web:2c852e7edb81a6decdeb3d",
-      measurementId: "G-K73DSMWBTP"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: 'AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ',
+        authDomain: 'ces-project-f8b4e.firebaseapp.com',
+        databaseURL: 'https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app',
+        projectId: 'ces-project-f8b4e',
+        storageBucket: 'ces-project-f8b4e.firebasestorage.app',
+        messagingSenderId: '580767851656',
+        appId: '1:580767851656:web:2c852e7edb81a6decdeb3d',
+        measurementId: 'G-K73DSMWBTP',
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
 
-        // Snackbar function
-        function showSnackbar(message) {
-            var snackbar = document.getElementById("snackbar");
-            snackbar.innerText = message;
-            snackbar.className = "snackbar show";
-            setTimeout(function(){ snackbar.className = snackbar.className.replace("show", ""); }, 3000);
+      // Snackbar function
+      function showSnackbar(message) {
+        var snackbar = document.getElementById('snackbar');
+        snackbar.innerText = message;
+        snackbar.className = 'snackbar show';
+        setTimeout(function () {
+          snackbar.className = snackbar.className.replace('show', '');
+        }, 3000);
+      }
+
+      function verifyVerificationCode() {
+        // Get OTP from all 6 input fields and concatenate them
+        const digit1 = document.getElementById('digit-1').value;
+        const digit2 = document.getElementById('digit-2').value;
+        const digit3 = document.getElementById('digit-3').value;
+        const digit4 = document.getElementById('digit-4').value;
+        const digit5 = document.getElementById('digit-5').value;
+        const digit6 = document.getElementById('digit-6').value;
+        const verificationCode = digit1 + digit2 + digit3 + digit4 + digit5 + digit6;
+
+        if (!verificationCode || verificationCode.length !== 6) {
+          showSnackbar('Please enter the complete 6-digit verification code.');
+          return;
         }
 
+        // Get verificationId from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const verificationId = urlParams.get('verificationId');
 
-        function verifyVerificationCode() {
-            // Get OTP from all 6 input fields and concatenate them
-            const digit1 = document.getElementById('digit-1').value;
-            const digit2 = document.getElementById('digit-2').value;
-            const digit3 = document.getElementById('digit-3').value;
-            const digit4 = document.getElementById('digit-4').value;
-            const digit5 = document.getElementById('digit-5').value;
-            const digit6 = document.getElementById('digit-6').value;
-            const verificationCode = digit1 + digit2 + digit3 + digit4 + digit5 + digit6;
-
-
-            if (!verificationCode || verificationCode.length !== 6) {
-                showSnackbar("Please enter the complete 6-digit verification code.");
-                return;
-            }
-
-            // Assuming verificationId and confirmationResult are somehow passed to this page
-            // For a real implementation, you would need to handle passing these values
-            // (e.g., using URL parameters, local storage, or server-side session)
-
-            // For this example, we will assume they are globally available (which is not ideal for separate pages)
-            if (window.confirmationResult) { // In real scenario, you'd need to retrieve confirmationResult
-                window.confirmationResult.confirm(verificationCode)
-                    .then(function (result) {
-                        const user = result.user;
-                        showSnackbar("Phone verification successful! Signed in.");
-                        window.location.href = "home.html";
-                    }).catch(function (error) {
-                        console.error("Error verifying verification code:", error);
-                        showSnackbar('Error verifying code: ' + error.message);
-                    });
-            } else {
-                showSnackbar("Verification session expired or invalid. Please return to login page and resend code.");
-            }
+        if (!verificationId) {
+          showSnackbar('Invalid verification session. Please try again.');
+          return;
         }
 
+        // Create credential with verification ID and code
+        const credential = firebase.auth.PhoneAuthProvider.credential(
+          verificationId,
+          verificationCode
+        );
 
+        // Sign in with credential
+        firebase
+          .auth()
+          .signInWithCredential(credential)
+          .then(function (result) {
+            const user = result.user;
+            showSnackbar('Phone verification successful! Signed in.');
+            window.location.href = 'index.html';
+          })
+          .catch(function (error) {
+            console.error('Error verifying verification code:', error);
+            showSnackbar('Error verifying code: ' + error.message);
+            if (error.code === 'auth/invalid-verification-code') {
+              // Clear inputs on invalid code
+              document.querySelectorAll('.otp-digit-input').forEach(input => (input.value = ''));
+              document.getElementById('digit-1').focus();
+            }
+          });
+      }
     </script>
-</head>
-<body class="bg-white flex items-center justify-center min-h-screen p-4">
+  </head>
+  <body class="bg-secondary-white flex items-center justify-center min-h-screen p-4">
     <div class="w-full max-w-md">
-        <div class="flex justify-between items-center mb-6">
-            <i class="fas fa-times text-2xl"></i>
-            <div></div>
+      <div class="flex justify-between items-center mb-6">
+        <i
+          class="fas fa-times text-2xl text-gray-600 hover:text-gray-800 cursor-pointer"
+          onclick="history.back()"
+        ></i>
+        <div></div>
+      </div>
+      <h1 class="text-2xl font-semibold mb-6">Verify your phone number</h1>
+
+      <div class="card p-4 mb-4">
+        <label class="form-label">Enter Verification Code</label>
+        <div class="otp-digit-group">
+          <input
+            type="number"
+            id="digit-1"
+            class="otp-digit-input"
+            maxlength="1"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+          />
+          <input
+            type="number"
+            id="digit-2"
+            class="otp-digit-input"
+            maxlength="1"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+          />
+          <input
+            type="number"
+            id="digit-3"
+            class="otp-digit-input"
+            maxlength="1"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+          />
+          <input
+            type="number"
+            id="digit-4"
+            class="otp-digit-input"
+            maxlength="1"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+          />
+          <input
+            type="number"
+            id="digit-5"
+            class="otp-digit-input"
+            maxlength="1"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+          />
+          <input
+            type="number"
+            id="digit-6"
+            class="otp-digit-input"
+            maxlength="1"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+          />
         </div>
-        <h1 class="text-2xl font-semibold mb-6">Verify your phone number</h1>
+      </div>
 
-
-        <div id="otpInputSection" class="border rounded-lg p-4 mb-4 otp-input-section show">
-            <label class="block text-gray-500 text-sm mb-2">Enter Verification Code</label>
-            <div class="otp-digit-group">
-                <input type="number" id="digit-1" class="otp-digit-input" maxlength="1" inputmode="numeric" autocomplete="one-time-code">
-                <input type="number" id="digit-2" class="otp-digit-input" maxlength="1" inputmode="numeric" autocomplete="one-time-code">
-                <input type="number" id="digit-3" class="otp-digit-input" maxlength="1" inputmode="numeric" autocomplete="one-time-code">
-                <input type="number" id="digit-4" class="otp-digit-input" maxlength="1" inputmode="numeric" autocomplete="one-time-code">
-                <input type="number" id="digit-5" class="otp-digit-input" maxlength="1" inputmode="numeric" autocomplete="one-time-code">
-                <input type="number" id="digit-6" class="otp-digit-input" maxlength="1" inputmode="numeric" autocomplete="one-time-code">
-            </div>
-        </div>
-
-
-        <button onclick="verifyVerificationCode()" class="w-full bg-[#28a745] text-white py-3 rounded-lg mb-4 hover:bg-[#1e7e34]" id="verifyButton">Verify OTP</button>
-
-
+      <button onclick="verifyVerificationCode()" class="btn-primary w-full mb-4" id="verifyButton">
+        Verify OTP
+      </button>
     </div>
     <div id="snackbar" class="snackbar"></div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const digitInputs = document.querySelectorAll('.otp-digit-input');
-            digitInputs.forEach((input, index) => {
-                input.addEventListener('input', (e) => {
-                    if (e.inputType === 'deleteContentBackward' && index > 0 && !input.value) {
-                        digitInputs[index - 1].focus();
-                    } else if (input.value.length === 1 && index < digitInputs.length - 1) {
-                        digitInputs[index + 1].focus();
-                    }
-                });
-                input.addEventListener('paste', (e) => {
-                    e.preventDefault();
-                    const pasteData = e.clipboardData.getData('text');
-                    if (/^\d{6}$/.test(pasteData)) {
-                        for (let i = 0; i < digitInputs.length; i++) {
-                            digitInputs[i].value = pasteData[i] || '';
-                        }
-                        digitInputs[digitInputs.length - 1].focus();
-                    } else {
-                        showSnackbar("Please paste a 6-digit code.");
-                    }
-                });
-            });
+      document.addEventListener('DOMContentLoaded', () => {
+        const digitInputs = document.querySelectorAll('.otp-digit-input');
+        digitInputs.forEach((input, index) => {
+          input.addEventListener('input', e => {
+            if (e.inputType === 'deleteContentBackward' && index > 0 && !input.value) {
+              digitInputs[index - 1].focus();
+            } else if (input.value.length === 1 && index < digitInputs.length - 1) {
+              digitInputs[index + 1].focus();
+            }
+          });
+          input.addEventListener('paste', e => {
+            e.preventDefault();
+            const pasteData = e.clipboardData.getData('text');
+            if (/^\d{6}$/.test(pasteData)) {
+              for (let i = 0; i < digitInputs.length; i++) {
+                digitInputs[i].value = pasteData[i] || '';
+              }
+              digitInputs[digitInputs.length - 1].focus();
+            } else {
+              showSnackbar('Please paste a 6-digit code.');
+            }
+          });
         });
+      });
     </script>
-</body>
+  </body>
 </html>
