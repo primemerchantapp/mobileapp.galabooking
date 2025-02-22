@@ -1,0 +1,318 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta name="theme-color" content="#007dd1"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="apple-touch-icon" href="assets/css/images/logo/nobg-logo.png"/>
+  <link rel="manifest" href="manifest.json"/>
+  <title>Gala Homepage</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
+      authDomain: "ces-project-f8b4e.firebaseapp.com",
+      databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ces-project-f8b4e",
+      storageBucket: "ces-project-f8b4e.firebasestorage.app",
+      messagingSenderId: "580767851656",
+      appId: "1:580767851656:web:2c852e7edb81a6decdeb3d",
+      measurementId: "G-K73DSMWBTP"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007dd1'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Roboto', sans-serif; }
+    .chip { 
+      padding: 6px 12px;
+      font-size: 0.875rem;
+      border-radius: 20px;
+      background-color: #F7F7F7;
+      color: #222222;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid #DDDDDD;
+      white-space: nowrap;
+    }
+    .chip:hover { 
+      border-color: #222222;
+      background-color: #F7F7F7;
+    }
+    .chip.active { 
+      background-color: #007dd1; 
+      color: white;
+      border-color: #007dd1;
+    }
+    .header-container {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .sticky-header { 
+      position: relative;
+      background-color: white;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      overflow: -moz-scrollbars-none;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-800">
+  <script>
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+  <div class="header-container shadow-sm">
+    <div class="sticky-header flex flex-col bg-white border-b w-full">
+      <div class="flex justify-between items-center p-4">
+        <a href="create.html" class="text-xl hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+          <i class="fas fa-plus"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-primary">Gala</h1>
+        <a href="notifications.html" class="text-xl hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+          <i class="fas fa-bell"></i>
+        </a>
+      </div>
+      <div class="px-4 pb-4">
+        <div class="flex items-center bg-gray-100 rounded-full p-2 w-full hover:bg-gray-200 transition-colors duration-200">
+        <i class="fas fa-search text-gray-500"></i>
+        <input class="bg-transparent ml-2 w-full focus:outline-none" placeholder="Search next Gala" type="text"/>
+      </div>
+        </div>
+      </div>
+    <div class="sticky-header flex overflow-x-auto no-scrollbar py-3 px-4 bg-white border-b">
+      <div class="flex space-x-3" id="categoryContainer">
+        <div class="chip active" data-category="all" onclick="selectCategory(this)">All</div>
+        <div class="chip" data-category="apartments" onclick="selectCategory(this)">Apartments</div>
+        <div class="chip" data-category="condominiums" onclick="selectCategory(this)">Condominiums</div>
+        <div class="chip" data-category="hotels" onclick="selectCategory(this)">Hotels</div>
+        <div class="chip" data-category="resorts" onclick="selectCategory(this)">Resorts</div>
+        <div class="chip" data-category="townhouses" onclick="selectCategory(this)">Town Houses</div>
+        <div class="chip" data-category="villas" onclick="selectCategory(this)">Villas</div>
+        <div class="chip" data-category="cityview" onclick="selectCategory(this)">City View</div>
+        <div class="chip" data-category="ruralbeauty" onclick="selectCategory(this)">Rural Beauty</div>
+        <div class="chip" data-category="recreations" onclick="selectCategory(this)">Recreations</div>
+        <div class="chip" data-category="adventures" onclick="selectCategory(this)">Adventures</div>
+      </div>
+    </div>
+  </div>
+  <div class="p-4 pb-32" id="propertyList">
+    <h2 class="text-xl font-bold mb-4">Available Properties</h2>
+    <div id="properties" class="grid grid-cols-2 gap-3 pb-[15px]"></div>
+    <div id="loading" class="text-center hidden">
+      <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+    </div>
+  </div>
+  <script>
+    let allProperties = [];
+    let selectedCategory = 'all';
+    let lastDoc = null;
+    let isLoading = false;
+    let hasMore = true;
+    const BATCH_SIZE = 10;
+
+    function selectCategory(element) {
+      // Remove active class from all chips
+      document.querySelectorAll('.chip').forEach(chip => chip.classList.remove('active'));
+      // Add active class to selected chip
+      element.classList.add('active');
+      // Update selected category and reset properties
+      selectedCategory = element.dataset.category;
+      lastDoc = null;
+      hasMore = true;
+      allProperties = [];
+      fetchProperties();
+    }
+
+    function filterProperties(append = false) {
+      const propertiesContainer = document.getElementById('properties');
+      if (!append) {
+        propertiesContainer.innerHTML = '';
+      }
+      
+      const filteredProperties = selectedCategory === 'all' 
+        ? allProperties 
+        : allProperties.filter(property => property.category?.toLowerCase() === selectedCategory);
+      
+      if (!hasMore && filteredProperties.length === 0) {
+        propertiesContainer.innerHTML = '<div class="col-span-2 text-center text-gray-500">No properties available</div>';
+        return;
+      }
+      
+      filteredProperties.forEach(property => {
+        const location = property.location || {};
+        const address = [
+          location.streetAddress,
+          location.barangay,
+          location.city,
+          location.province
+        ].filter(Boolean).join(', ');
+        
+        // Array of available hotel placeholder images
+        const placeholderImages = [
+          'assets/css/images/logo/hotels/151519329.jpg',
+          'assets/css/images/logo/hotels/487278446.jpg',
+          'assets/css/images/logo/hotels/488657471.jpg',
+          'assets/css/images/logo/hotels/595548591.jpeg',
+          'assets/css/images/logo/hotels/595549020.jpeg',
+          'assets/css/images/logo/hotels/595549146.jpeg',
+          'assets/css/images/logo/hotels/595549239.jpeg',
+          'assets/css/images/logo/hotels/595549938.jpeg',
+          'assets/css/images/logo/hotels/595550000.jpeg',
+          'assets/css/images/logo/hotels/595550059.jpeg',
+          'assets/css/images/logo/hotels/595550098.jpeg',
+          'assets/css/images/logo/hotels/595550178.jpeg',
+          'assets/css/images/logo/hotels/595550229.jpeg',
+          'assets/css/images/logo/hotels/595550306.jpeg',
+          'assets/css/images/logo/hotels/595550377.jpeg',
+          'assets/css/images/logo/hotels/595550415.jpeg',
+          'assets/css/images/logo/hotels/595550862.jpeg',
+          'assets/css/images/logo/hotels/595550925.jpeg',
+          'assets/css/images/logo/hotels/595550975.jpeg',
+          'assets/css/images/logo/hotels/595551044.jpeg',
+          'assets/css/images/logo/hotels/595551127.jpeg',
+          'assets/css/images/logo/hotels/595551145.jpeg',
+          'assets/css/images/logo/hotels/595551195.jpeg',
+          'assets/css/images/logo/hotels/620168315.jpeg'
+        ];
+
+        const imageUrl = property.imageUrls && property.imageUrls.length > 0 
+          ? property.imageUrls[0] 
+          : placeholderImages[Math.floor(Math.random() * placeholderImages.length)];
+
+        propertiesContainer.innerHTML += `
+          <a href="details.html?id=${property.id}" class="block border rounded-lg overflow-hidden shadow hover:shadow-md transition-shadow">
+            <img src="${imageUrl}" alt="Image of ${property.propertyName}" class="w-full h-32 object-cover">
+            <div class="p-3">
+              <h3 class="font-bold text-sm text-gray-900">${property.propertyName || 'Unnamed Property'}</h3>
+              <p class="text-gray-600 text-xs mb-1 truncate">${address}</p>
+              <div class="flex flex-wrap gap-1 mb-1">
+                ${(property.amenities || []).slice(0, 2).map(amenity => 
+                  `<span class="bg-gray-100 text-xs px-2 py-0.5 rounded">${amenity}</span>`
+                ).join('')}
+              </div>
+              <div class="mt-1">
+                <span class="text-primary font-bold text-sm">₱${property.price?.toLocaleString() || 0}</span>
+                <span class="text-gray-600 text-xs">/night</span>
+              </div>
+              <div class="flex items-center mt-1">
+                <i class="fas fa-user-friends text-gray-400 text-xs mr-1"></i>
+                <span class="text-gray-600 text-xs">Up to ${property.maxGuests || 1} guests</span>
+              </div>
+            </div>
+          </a>`;
+      });
+    }
+
+    async function fetchProperties(append = false) {
+      if (isLoading || (!hasMore && append)) return;
+      
+      isLoading = true;
+      document.getElementById('loading').classList.remove('hidden');
+      
+      try {
+        let query = firebase.firestore().collection('properties');
+        
+        if (selectedCategory !== 'all') {
+          query = query.where('category', '==', selectedCategory);
+        }
+        
+        query = query.orderBy('createdAt', 'desc').limit(BATCH_SIZE);
+        
+        if (lastDoc) {
+          query = query.startAfter(lastDoc);
+        }
+        
+        const querySnapshot = await query.get();
+        
+        if (querySnapshot.empty) {
+          hasMore = false;
+          isLoading = false;
+          document.getElementById('loading').classList.add('hidden');
+          return;
+        }
+        
+        lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+        
+        const newProperties = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        allProperties = append ? [...allProperties, ...newProperties] : newProperties;
+        filterProperties(append);
+        
+      } catch (error) {
+        console.error('Error fetching properties:', error);
+      }
+      
+      isLoading = false;
+      document.getElementById('loading').classList.add('hidden');
+    }
+    
+    // Initialize infinite scroll
+    const observer = new IntersectionObserver((entries) => {
+      const lastEntry = entries[0];
+      if (lastEntry.isIntersecting && !isLoading && hasMore) {
+        fetchProperties(true);
+      }
+    }, {
+      rootMargin: '100px'
+    });
+    
+    observer.observe(document.getElementById('loading'));
+    
+    // Initial fetch
+    fetchProperties();
+  </script>
+  <div class="fixed bottom-0 left-0 right-0 w-full bg-white border-t shadow">
+    <div class="flex justify-around py-2">
+      <a href="explore.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-search text-xl"></i> 
+        <span class="text-xs mt-1">Explore</span>
+      </a>
+      <a href="wishlists.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-heart text-xl"></i>
+        <span class="text-xs mt-1">Wishlists</span>
+      </a>
+      <a href="index.html" class="flex flex-col items-center text-blue-500 hover:text-blue-600 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-taxi text-xl"></i>
+        <span class="text-xs mt-1">Gala</span>
+      </a>
+      <a href="messages.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-comment text-xl"></i>
+        <span class="text-xs mt-1">Messages</span>
+      </a>
+      <a href="profile.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-user text-xl"></i>
+        <span class="text-xs mt-1">Profile</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

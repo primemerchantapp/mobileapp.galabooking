@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta name="theme-color" content="#007dd1"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="apple-touch-icon" href="assets/css/images/logo/nobg-logo.png"/>
+  <link rel="manifest" href="manifest.json"/>
+  <title>Messages - Gala</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
+      authDomain: "ces-project-f8b4e.firebaseapp.com",
+      databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ces-project-f8b4e",
+      storageBucket: "ces-project-f8b4e.firebasestorage.app",
+      messagingSenderId: "580767851656",
+      appId: "1:580767851656:web:2c852e7edb81a6decdeb3d",
+      measurementId: "G-K73DSMWBTP"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007dd1'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { 
+      font-family: 'Roboto', sans-serif;
+      background-color: #F7F7F7;
+    }
+    .header-container {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .chat-bubble {
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .chat-bubble.sent {
+      background-color: #007dd1;
+      color: white;
+      border-radius: 18px 18px 4px 18px;
+    }
+    .chat-bubble.received {
+      background-color: #E5E7EB;
+      color: black;
+      border-radius: 18px 18px 18px 4px;
+    }
+    .message-time {
+      font-size: 0.7rem;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+
+  <div class="header-container shadow-sm">
+    <div class="sticky-header flex flex-col bg-white border-b w-full">
+      <div class="flex justify-between items-center p-4">
+        <a href="explore.html" class="text-xl hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+          <i class="fas fa-search"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-primary">Gala</h1>
+        <a href="notifications.html" class="text-xl hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+          <i class="fas fa-bell"></i>
+        </a>
+      </div>
+      <div class="px-4 pb-4">
+        <div class="relative">
+          <input type="text" 
+                 id="searchInput"
+                 class="w-full px-4 py-2 bg-gray-100 border rounded-lg pl-10 focus:outline-none focus:border-primary" 
+                 placeholder="Search messages"/>
+          <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-4 pb-24" id="chatsList">
+    <div id="loading" class="text-center py-4">
+      <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="fixed bottom-0 left-0 right-0 w-full bg-white border-t shadow">
+    <div class="flex justify-around py-2">
+      <a href="explore.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-search text-xl"></i> 
+        <span class="text-xs mt-1">Explore</span>
+      </a>
+      <a href="wishlists.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-heart text-xl"></i>
+        <span class="text-xs mt-1">Wishlists</span>
+      </a>
+      <a href="index.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-taxi text-xl"></i>
+        <span class="text-xs mt-1">Gala</span>
+      </a>
+      <a href="messages.html" class="flex flex-col items-center text-blue-500 hover:text-blue-600 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-comment text-xl"></i>
+        <span class="text-xs mt-1">Messages</span>
+      </a>
+      <a href="profile.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-user text-xl"></i>
+        <span class="text-xs mt-1">Profile</span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const chatsList = document.getElementById('chatsList');
+    const loading = document.getElementById('loading');
+    const searchInput = document.getElementById('searchInput');
+    let lastDoc = null;
+    let isLoading = false;
+    let hasMore = true;
+    const BATCH_SIZE = 20;
+
+    let debounceTimer;
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const query = e.target.value.trim().toLowerCase();
+        loadChats(false, query);
+      }, 300);
+    });
+
+    async function loadChats(append = false, searchQuery = '') {
+      if (isLoading || (!hasMore && append)) return;
+      
+      isLoading = true;
+      loading.style.display = 'block';
+      
+      try {
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+
+        let query = firebase.firestore()
+          .collection('chats')
+          .where('participants', 'array-contains', user.uid)
+          .orderBy('lastMessageAt', 'desc')
+          .limit(BATCH_SIZE);
+        
+        if (lastDoc && append) {
+          query = query.startAfter(lastDoc);
+        }
+        
+        const snapshot = await query.get();
+        
+        if (snapshot.empty) {
+          hasMore = false;
+          if (!append) {
+            chatsList.innerHTML = `
+              <div class="text-center text-gray-500 py-8">
+                <i class="fas fa-comment text-4xl mb-2"></i>
+                <p>No messages yet</p>
+                <p class="text-sm mt-2">Start booking properties to chat with hosts</p>
+              </div>
+            `;
+          }
+          loading.style.display = 'none';
+          isLoading = false;
+          return;
+        }
+        
+        lastDoc = snapshot.docs[snapshot.docs.length - 1];
+        
+        if (!append) {
+          chatsList.innerHTML = '';
+        }
+
+        const chats = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        // Filter chats if there's a search query
+        const filteredChats = searchQuery
+          ? chats.filter(chat => 
+              chat.propertyName?.toLowerCase().includes(searchQuery) ||
+              chat.lastMessage?.toLowerCase().includes(searchQuery))
+          : chats;
+
+        for (const chat of filteredChats) {
+          // Get the other participant's info
+          const otherParticipantId = chat.participants.find(id => id !== user.uid);
+          const userDoc = await firebase.firestore()
+            .collection('users')
+            .doc(otherParticipantId)
+            .get();
+          
+          const otherUser = userDoc.data() || {};
+          const timeAgo = getTimeAgo(chat.lastMessageAt?.toDate());
+
+          chatsList.innerHTML += `
+            <div class="bg-white p-4 rounded-lg shadow-sm mb-2 cursor-pointer hover:bg-gray-50" 
+                 onclick="openChat('${chat.id}')">
+              <div class="flex items-center">
+                <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+                  ${otherUser.photoURL 
+                    ? `<img src="${otherUser.photoURL}" alt="${otherUser.displayName}" class="w-12 h-12 rounded-full object-cover"/>` 
+                    : `<i class="fas fa-user text-white text-xl"></i>`
+                  }
+                </div>
+                <div class="ml-3 flex-1">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <h3 class="font-bold text-gray-900">${otherUser.displayName || 'User'}</h3>
+                      <p class="text-sm text-gray-600">${chat.propertyName || ''}</p>
+                    </div>
+                    <span class="text-xs text-gray-500">${timeAgo}</span>
+                  </div>
+                  <p class="text-sm text-gray-600 mt-1 truncate ${!chat.read && chat.lastSenderId !== user.uid ? 'font-bold' : ''}">
+                    ${chat.lastMessage || 'No messages yet'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        
+      } catch (error) {
+        console.error('Error loading chats:', error);
+        if (!append) {
+          chatsList.innerHTML = `
+            <div class="text-center text-red-500 py-4">
+              Error loading messages. Please try again.
+            </div>
+          `;
+        }
+      }
+      
+      loading.style.display = 'none';
+      isLoading = false;
+    }
+
+    function getTimeAgo(date) {
+      if (!date) return '';
+      
+      const seconds = Math.floor((new Date() - date) / 1000);
+      
+      let interval = seconds / 31536000;
+      if (interval > 1) return Math.floor(interval) + 'y';
+      
+      interval = seconds / 2592000;
+      if (interval > 1) return Math.floor(interval) + 'mo';
+      
+      interval = seconds / 86400;
+      if (interval > 1) return Math.floor(interval) + 'd';
+      
+      interval = seconds / 3600;
+      if (interval > 1) return Math.floor(interval) + 'h';
+      
+      interval = seconds / 60;
+      if (interval > 1) return Math.floor(interval) + 'm';
+      
+      return 'Just now';
+    }
+
+    function openChat(chatId) {
+      // TODO: Implement chat view
+      console.log('Opening chat:', chatId);
+    }
+
+    // Initialize infinite scroll
+    const observer = new IntersectionObserver((entries) => {
+      const lastEntry = entries[0];
+      if (lastEntry.isIntersecting && !isLoading && hasMore) {
+        loadChats(true);
+      }
+    }, {
+      rootMargin: '100px'
+    });
+    
+    observer.observe(loading);
+    
+    // Initial load
+    loadChats();
+
+    // Listen for new messages in real-time
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        firebase.firestore()
+          .collection('chats')
+          .where('participants', 'array-contains', user.uid)
+          .orderBy('lastMessageAt', 'desc')
+          .limit(1)
+          .onSnapshot((snapshot) => {
+            if (!snapshot.empty) {
+              // Reload chats when there's a new message
+              loadChats();
+            }
+          });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta name="theme-color" content="#007dd1"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="apple-touch-icon" href="assets/css/images/logo/nobg-logo.png"/>
+  <link rel="manifest" href="manifest.json"/>
+  <title>Notifications - Gala</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
+      authDomain: "ces-project-f8b4e.firebaseapp.com",
+      databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ces-project-f8b4e",
+      storageBucket: "ces-project-f8b4e.firebasestorage.app",
+      messagingSenderId: "580767851656",
+      appId: "1:580767851656:web:2c852e7edb81a6decdeb3d",
+      measurementId: "G-K73DSMWBTP"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007dd1'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { 
+      font-family: 'Roboto', sans-serif;
+      background-color: #F7F7F7;
+    }
+    .header-container {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .notification-item:not(:last-child) {
+      border-bottom: 1px solid #E5E7EB;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+
+  <div class="header-container shadow-sm">
+    <div class="sticky-header flex flex-col bg-white border-b w-full">
+      <div class="flex justify-between items-center p-4">
+        <a href="index.html" class="text-xl hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-primary">Gala</h1>
+        <div class="w-8"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-4" id="notificationsList">
+    <div id="loading" class="text-center py-4">
+      <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+    </div>
+  </div>
+
+  <script>
+    const notificationsList = document.getElementById('notificationsList');
+    const loading = document.getElementById('loading');
+    let lastDoc = null;
+    let isLoading = false;
+    let hasMore = true;
+    const BATCH_SIZE = 20;
+
+    async function fetchNotifications(append = false) {
+      if (isLoading || (!hasMore && append)) return;
+      
+      isLoading = true;
+      loading.style.display = 'block';
+      
+      try {
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+
+        let query = firebase.firestore()
+          .collection('notifications')
+          .where('userId', '==', user.uid)
+          .orderBy('createdAt', 'desc')
+          .limit(BATCH_SIZE);
+        
+        if (lastDoc) {
+          query = query.startAfter(lastDoc);
+        }
+        
+        const snapshot = await query.get();
+        
+        if (snapshot.empty) {
+          hasMore = false;
+          if (!append) {
+            notificationsList.innerHTML = `
+              <div class="text-center text-gray-500 py-8">
+                <i class="fas fa-bell text-4xl mb-2"></i>
+                <p>No notifications yet</p>
+              </div>
+            `;
+          }
+          loading.style.display = 'none';
+          isLoading = false;
+          return;
+        }
+        
+        lastDoc = snapshot.docs[snapshot.docs.length - 1];
+        
+        const notifications = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        if (!append) {
+          notificationsList.innerHTML = '';
+        }
+
+        notifications.forEach(notification => {
+          const timeAgo = getTimeAgo(notification.createdAt?.toDate());
+          const isUnread = !notification.read;
+          
+          notificationsList.innerHTML += `
+            <div class="notification-item p-4 bg-white mb-2 rounded-lg shadow-sm ${isUnread ? 'bg-blue-50' : ''}" onclick="markAsRead('${notification.id}')">
+              <div class="flex items-start">
+                <div class="flex-shrink-0 w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white">
+                  <i class="fas ${getNotificationIcon(notification.type)}"></i>
+                </div>
+                <div class="ml-3 flex-1">
+                  <p class="text-sm font-semibold text-gray-900">${notification.title}</p>
+                  <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
+                  <p class="text-xs text-gray-500 mt-1">${timeAgo}</p>
+                </div>
+                ${isUnread ? '<div class="w-2 h-2 bg-primary rounded-full"></div>' : ''}
+              </div>
+            </div>
+          `;
+        });
+        
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        notificationsList.innerHTML += `
+          <div class="text-center text-red-500 py-4">
+            Error loading notifications. Please try again.
+          </div>
+        `;
+      }
+      
+      loading.style.display = 'none';
+      isLoading = false;
+    }
+
+    function getNotificationIcon(type) {
+      switch (type) {
+        case 'booking':
+          return 'fa-calendar-check';
+        case 'message':
+          return 'fa-comment';
+        case 'payment':
+          return 'fa-credit-card';
+        case 'reminder':
+          return 'fa-clock';
+        case 'alert':
+          return 'fa-exclamation-circle';
+        default:
+          return 'fa-bell';
+      }
+    }
+
+    function getTimeAgo(date) {
+      if (!date) return '';
+      
+      const seconds = Math.floor((new Date() - date) / 1000);
+      
+      let interval = seconds / 31536000;
+      if (interval > 1) return Math.floor(interval) + ' years ago';
+      
+      interval = seconds / 2592000;
+      if (interval > 1) return Math.floor(interval) + ' months ago';
+      
+      interval = seconds / 86400;
+      if (interval > 1) return Math.floor(interval) + ' days ago';
+      
+      interval = seconds / 3600;
+      if (interval > 1) return Math.floor(interval) + ' hours ago';
+      
+      interval = seconds / 60;
+      if (interval > 1) return Math.floor(interval) + ' minutes ago';
+      
+      return 'Just now';
+    }
+
+    async function markAsRead(notificationId) {
+      try {
+        await firebase.firestore()
+          .collection('notifications')
+          .doc(notificationId)
+          .update({
+            read: true,
+            readAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+      }
+    }
+
+    // Initialize infinite scroll
+    const observer = new IntersectionObserver((entries) => {
+      const lastEntry = entries[0];
+      if (lastEntry.isIntersecting && !isLoading && hasMore) {
+        fetchNotifications(true);
+      }
+    }, {
+      rootMargin: '100px'
+    });
+    
+    observer.observe(loading);
+    
+    // Initial fetch
+    fetchNotifications();
+  </script>
+</body>
+</html>

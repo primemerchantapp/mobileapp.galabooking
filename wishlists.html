@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta name="theme-color" content="#007dd1"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="apple-touch-icon" href="assets/css/images/logo/nobg-logo.png"/>
+  <link rel="manifest" href="manifest.json"/>
+  <title>Wishlists - Gala</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
+      authDomain: "ces-project-f8b4e.firebaseapp.com",
+      databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ces-project-f8b4e",
+      storageBucket: "ces-project-f8b4e.firebasestorage.app",
+      messagingSenderId: "580767851656",
+      appId: "1:580767851656:web:2c852e7edb81a6decdeb3d",
+      measurementId: "G-K73DSMWBTP"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007dd1'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { 
+      font-family: 'Roboto', sans-serif;
+      background-color: #F7F7F7;
+    }
+    .header-container {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+
+  <div class="header-container shadow-sm">
+    <div class="sticky-header flex flex-col bg-white border-b w-full">
+      <div class="flex justify-between items-center p-4">
+        <a href="explore.html" class="text-xl hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+          <i class="fas fa-search"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-primary">Gala</h1>
+        <a href="notifications.html" class="text-xl hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+          <i class="fas fa-bell"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-4 pb-24">
+    <!-- Wishlists Container -->
+    <div id="wishlistsContainer" class="space-y-4">
+      <div id="loading" class="text-center py-4">
+        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="fixed bottom-0 left-0 right-0 w-full bg-white border-t shadow">
+    <div class="flex justify-around py-2">
+      <a href="explore.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-search text-xl"></i> 
+        <span class="text-xs mt-1">Explore</span>
+      </a>
+      <a href="wishlists.html" class="flex flex-col items-center text-blue-500 hover:text-blue-600 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-heart text-xl"></i>
+        <span class="text-xs mt-1">Wishlists</span>
+      </a>
+      <a href="index.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-taxi text-xl"></i>
+        <span class="text-xs mt-1">Gala</span>
+      </a>
+      <a href="messages.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-comment text-xl"></i>
+        <span class="text-xs mt-1">Messages</span>
+      </a>
+      <a href="profile.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-user text-xl"></i>
+        <span class="text-xs mt-1">Profile</span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const wishlistsContainer = document.getElementById('wishlistsContainer');
+    const loading = document.getElementById('loading');
+    let lastDoc = null;
+    let isLoading = false;
+    let hasMore = true;
+    const BATCH_SIZE = 10;
+
+    async function loadWishlistedProperties(append = false) {
+      if (isLoading || (!hasMore && append)) return;
+      
+      isLoading = true;
+      loading.style.display = 'block';
+      
+      try {
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+
+        let query = firebase.firestore()
+          .collection('wishlists')
+          .doc(user.uid)
+          .collection('properties')
+          .orderBy('addedAt', 'desc')
+          .limit(BATCH_SIZE);
+        
+        if (lastDoc) {
+          query = query.startAfter(lastDoc);
+        }
+        
+        const wishlistSnapshot = await query.get();
+        
+        if (wishlistSnapshot.empty) {
+          hasMore = false;
+          if (!append) {
+            wishlistsContainer.innerHTML = `
+              <div class="text-center text-gray-500 py-8">
+                <i class="fas fa-heart text-4xl mb-2"></i>
+                <p>No saved properties yet</p>
+                <a href="explore.html" class="text-primary hover:underline mt-2 inline-block">
+                  Start exploring properties
+                </a>
+              </div>
+            `;
+          }
+          loading.style.display = 'none';
+          isLoading = false;
+          return;
+        }
+        
+        lastDoc = wishlistSnapshot.docs[wishlistSnapshot.docs.length - 1];
+        
+        // Get property IDs from wishlists
+        const propertyIds = wishlistSnapshot.docs.map(doc => doc.id);
+        
+        // Fetch property details
+        const propertyPromises = propertyIds.map(id => 
+          firebase.firestore().collection('properties').doc(id).get()
+        );
+        
+        const propertySnapshots = await Promise.all(propertyPromises);
+        
+        if (!append) {
+          wishlistsContainer.innerHTML = '';
+        }
+
+        propertySnapshots.forEach(doc => {
+          if (!doc.exists) return;
+          
+          const property = doc.data();
+          const location = property.location || {};
+          const address = [
+            location.streetAddress,
+            location.barangay,
+            location.city,
+            location.province
+          ].filter(Boolean).join(', ');
+
+          wishlistsContainer.innerHTML += `
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div class="relative">
+                <img src="${property.imageUrls?.[0] || 'assets/css/images/logo/hotels/151519329.jpg'}" 
+                     alt="${property.propertyName}" 
+                     class="w-full h-48 object-cover"/>
+                <button onclick="removeFromWishlist('${doc.id}')" 
+                        class="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md">
+                  <i class="fas fa-heart text-red-500"></i>
+                </button>
+              </div>
+              <div class="p-4">
+                <h3 class="font-bold text-lg">${property.propertyName || 'Unnamed Property'}</h3>
+                <p class="text-gray-600 text-sm mb-2">${address}</p>
+                <div class="flex items-center gap-2 mb-2">
+                  ${property.rating ? `
+                    <div class="flex items-center">
+                      <i class="fas fa-star text-yellow-400"></i>
+                      <span class="ml-1 text-sm">${property.rating}</span>
+                    </div>
+                  ` : ''}
+                  ${property.reviews ? `
+                    <span class="text-sm text-gray-600">(${property.reviews} reviews)</span>
+                  ` : ''}
+                </div>
+                <div class="flex flex-wrap gap-1 mb-2">
+                  ${(property.amenities || []).slice(0, 3).map(amenity => 
+                    `<span class="bg-gray-100 text-xs px-2 py-0.5 rounded">${amenity}</span>`
+                  ).join('')}
+                </div>
+                <div class="flex justify-between items-center mt-2">
+                  <div>
+                    <span class="text-primary font-bold">₱${property.price?.toLocaleString() || 0}</span>
+                    <span class="text-gray-600 text-sm">/night</span>
+                  </div>
+                  <button class="bg-primary text-white px-4 py-2 rounded-lg text-sm">Book Now</button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+      } catch (error) {
+        console.error('Error loading wishlisted properties:', error);
+        if (!append) {
+          wishlistsContainer.innerHTML = `
+            <div class="text-center text-red-500 py-4">
+              Error loading wishlisted properties. Please try again.
+            </div>
+          `;
+        }
+      }
+      
+      loading.style.display = 'none';
+      isLoading = false;
+    }
+
+    async function removeFromWishlist(propertyId) {
+      try {
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+
+        await firebase.firestore()
+          .collection('wishlists')
+          .doc(user.uid)
+          .collection('properties')
+          .doc(propertyId)
+          .delete();
+
+        // Reload wishlists
+        lastDoc = null;
+        hasMore = true;
+        loadWishlistedProperties();
+      } catch (error) {
+        console.error('Error removing from wishlist:', error);
+      }
+    }
+
+    // Initialize infinite scroll
+    const observer = new IntersectionObserver((entries) => {
+      const lastEntry = entries[0];
+      if (lastEntry.isIntersecting && !isLoading && hasMore) {
+        loadWishlistedProperties(true);
+      }
+    }, {
+      rootMargin: '100px'
+    });
+    
+    observer.observe(loading);
+    
+    // Initial load
+    loadWishlistedProperties();
+  </script>
+</body>
+</html>

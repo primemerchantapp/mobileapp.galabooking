@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta name="theme-color" content="#007dd1"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="apple-touch-icon" href="assets/css/images/logo/nobg-logo.png"/>
+  <link rel="manifest" href="manifest.json"/>
+  <title>Profile - Gala</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-storage.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
+      authDomain: "ces-project-f8b4e.firebaseapp.com",
+      databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ces-project-f8b4e",
+      storageBucket: "ces-project-f8b4e.firebasestorage.app",
+      messagingSenderId: "580767851656",
+      appId: "1:580767851656:web:2c852e7edb81a6decdeb3d",
+      measurementId: "G-K73DSMWBTP"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007dd1'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { 
+      font-family: 'Roboto', sans-serif;
+      background-color: #F7F7F7;
+    }
+    .header-container {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .menu-item {
+      transition: all 0.2s ease;
+    }
+    .menu-item:active {
+      background-color: #E5E7EB;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+
+  <div class="header-container shadow-sm">
+    <div class="sticky-header flex flex-col bg-white border-b w-full">
+      <div class="flex justify-between items-center p-4">
+        <a href="index.html" class="text-xl hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-primary">Gala</h1>
+        <div class="w-8"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-4 pb-24">
+    <!-- Profile Info -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
+      <div class="flex items-center">
+        <div class="relative group" onclick="document.getElementById('photoInput').click()">
+          <div class="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center cursor-pointer overflow-hidden" id="photoContainer">
+            <i class="fas fa-user text-white text-3xl"></i>
+          </div>
+          <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full items-center justify-center hidden group-hover:flex cursor-pointer">
+            <i class="fas fa-camera text-white"></i>
+          </div>
+          <input type="file" 
+                 id="photoInput" 
+                 accept="image/*" 
+                 class="hidden" 
+                 onchange="uploadPhoto(event)" 
+                 aria-label="Change profile photo"
+                 title="Click to change profile photo"/>
+        </div>
+        <div class="ml-4">
+          <h2 class="text-xl font-bold" id="displayName">Loading...</h2>
+          <p class="text-gray-600" id="email">Loading...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Settings -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
+      <div class="px-4 py-3 border-b">
+        <h3 class="font-bold">Account Settings</h3>
+      </div>
+      <div class="divide-y">
+        <div class="menu-item p-4 flex justify-between items-center cursor-pointer" onclick="editProfile()">
+          <div class="flex items-center">
+            <i class="fas fa-user-edit text-gray-500 w-6"></i>
+            <span class="ml-3">Edit Profile</span>
+          </div>
+          <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+        <div class="menu-item p-4 flex justify-between items-center cursor-pointer" onclick="changePassword()">
+          <div class="flex items-center">
+            <i class="fas fa-lock text-gray-500 w-6"></i>
+            <span class="ml-3">Change Password</span>
+          </div>
+          <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+        <div class="menu-item p-4 flex justify-between items-center cursor-pointer" onclick="managePayments()">
+          <div class="flex items-center">
+            <i class="fas fa-credit-card text-gray-500 w-6"></i>
+            <span class="ml-3">Payment Methods</span>
+          </div>
+          <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bookings -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
+      <div class="px-4 py-3 border-b">
+        <h3 class="font-bold">Your Bookings</h3>
+      </div>
+      <div class="divide-y">
+        <div class="menu-item p-4 flex justify-between items-center cursor-pointer" onclick="viewBookings('upcoming')">
+          <div class="flex items-center">
+            <i class="fas fa-calendar-alt text-gray-500 w-6"></i>
+            <span class="ml-3">Upcoming Stays</span>
+          </div>
+          <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+        <div class="menu-item p-4 flex justify-between items-center cursor-pointer" onclick="viewBookings('past')">
+          <div class="flex items-center">
+            <i class="fas fa-history text-gray-500 w-6"></i>
+            <span class="ml-3">Past Stays</span>
+          </div>
+          <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Support -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
+      <div class="px-4 py-3 border-b">
+        <h3 class="font-bold">Support</h3>
+      </div>
+      <div class="divide-y">
+        <div class="menu-item p-4 flex justify-between items-center cursor-pointer" onclick="contactSupport()">
+          <div class="flex items-center">
+            <i class="fas fa-question-circle text-gray-500 w-6"></i>
+            <span class="ml-3">Help Center</span>
+          </div>
+          <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+        <div class="menu-item p-4 flex justify-between items-center cursor-pointer" onclick="openPrivacyPolicy()">
+          <div class="flex items-center">
+            <i class="fas fa-shield-alt text-gray-500 w-6"></i>
+            <span class="ml-3">Privacy Policy</span>
+          </div>
+          <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+        <div class="menu-item p-4 flex justify-between items-center cursor-pointer" onclick="openTerms()">
+          <div class="flex items-center">
+            <i class="fas fa-file-alt text-gray-500 w-6"></i>
+            <span class="ml-3">Terms of Service</span>
+          </div>
+          <i class="fas fa-chevron-right text-gray-400"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logout Button -->
+    <button onclick="logout()" class="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition-colors duration-200">
+      Sign Out
+    </button>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="fixed bottom-0 left-0 right-0 w-full bg-white border-t shadow">
+    <div class="flex justify-around py-2">
+      <a href="explore.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-search text-xl"></i> 
+        <span class="text-xs mt-1">Explore</span>
+      </a>
+      <a href="wishlists.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-heart text-xl"></i>
+        <span class="text-xs mt-1">Wishlists</span>
+      </a>
+      <a href="index.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-taxi text-xl"></i>
+        <span class="text-xs mt-1">Gala</span>
+      </a>
+      <a href="messages.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-comment text-xl"></i>
+        <span class="text-xs mt-1">Messages</span>
+      </a>
+      <a href="profile.html" class="flex flex-col items-center text-blue-500 hover:text-blue-600 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-user text-xl"></i>
+        <span class="text-xs mt-1">Profile</span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // Load user profile
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (user) {
+        document.getElementById('email').textContent = user.email;
+        document.getElementById('displayName').textContent = user.displayName || 'Unnamed User';
+        
+        if (user.photoURL) {
+          document.getElementById('photoContainer').innerHTML = `
+            <img src="${user.photoURL}" alt="Profile" class="w-full h-full object-cover"/>
+          `;
+        }
+
+        // Load additional user data from Firestore
+        try {
+          const userDoc = await firebase.firestore()
+            .collection('users')
+            .doc(user.uid)
+            .get();
+          
+          if (userDoc.exists) {
+            const userData = userDoc.data();
+            // Update UI with additional user data if needed
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        }
+      }
+    });
+
+    async function uploadPhoto(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
+      const user = firebase.auth().currentUser;
+      if (!user) return;
+
+      try {
+        // Show loading state
+        document.getElementById('photoContainer').innerHTML = `
+          <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+        `;
+
+        // Upload to Firebase Storage
+        const storageRef = firebase.storage().ref();
+        const fileRef = storageRef.child(`profile-photos/${user.uid}`);
+        await fileRef.put(file);
+        
+        // Get download URL
+        const photoURL = await fileRef.getDownloadURL();
+        
+        // Update user profile
+        await user.updateProfile({ photoURL });
+        
+        // Update UI
+        document.getElementById('photoContainer').innerHTML = `
+          <img src="${photoURL}" alt="Profile" class="w-full h-full object-cover"/>
+        `;
+        
+        // Update Firestore
+        await firebase.firestore()
+          .collection('users')
+          .doc(user.uid)
+          .set({
+            photoURL
+          }, { merge: true });
+          
+      } catch (error) {
+        console.error('Error uploading photo:', error);
+        alert('Error uploading photo. Please try again.');
+        
+        // Reset to default state
+        document.getElementById('photoContainer').innerHTML = `
+          <i class="fas fa-user text-white text-3xl"></i>
+        `;
+      }
+    }
+
+    function editProfile() {
+      // TODO: Implement profile editing
+      console.log('Edit profile clicked');
+    }
+
+    function changePassword() {
+      const user = firebase.auth().currentUser;
+      if (!user) return;
+      
+      const email = user.email;
+      firebase.auth().sendPasswordResetEmail(email)
+        .then(() => {
+          alert('Password reset email sent. Please check your inbox.');
+        })
+        .catch((error) => {
+          console.error('Error sending password reset:', error);
+          alert('Error sending password reset email. Please try again.');
+        });
+    }
+
+    function managePayments() {
+      // TODO: Implement payment methods management
+      console.log('Manage payments clicked');
+    }
+
+    function viewBookings(type) {
+      // TODO: Implement bookings view
+      console.log('View bookings clicked:', type);
+    }
+
+    function contactSupport() {
+      // TODO: Implement support contact
+      console.log('Contact support clicked');
+    }
+
+    function openPrivacyPolicy() {
+      // TODO: Implement privacy policy view
+      console.log('Privacy policy clicked');
+    }
+
+    function openTerms() {
+      // TODO: Implement terms view
+      console.log('Terms clicked');
+    }
+
+    async function logout() {
+      try {
+        await firebase.auth().signOut();
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Error signing out:', error);
+        alert('Error signing out. Please try again.');
+      }
+    }
+  </script>
+</body>
+</html>

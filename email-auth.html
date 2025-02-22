@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up with Email - Gala</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Gala&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Gala', sans-serif;
+        }
+        .snackbar {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+        }
+        .snackbar.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @-webkit-keyframes fadein {
+            from {bottom: 0; opacity: 0;} 
+            to {bottom: 30px; opacity: 1;}
+        }
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @-webkit-keyframes fadeout {
+            from {bottom: 30px; opacity: 1;} 
+            to {bottom: 0; opacity: 0;}
+        }
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+    </style>
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
+            authDomain: "ces-project-f8b4e.firebaseapp.com",
+            databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ces-project-f8b4e",
+            storageBucket: "ces-project-f8b4e.firebasestorage.app",
+            messagingSenderId: "580767851656",
+            appId: "1:580767851656:web:2c852e7edb81a6decdeb3d",
+            measurementId: "G-K73DSMWBTP"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Snackbar function
+        function showSnackbar(message) {
+            var snackbar = document.getElementById("snackbar");
+            snackbar.innerText = message;
+            snackbar.className = "snackbar show";
+            setTimeout(function(){ snackbar.className = snackbar.className.replace("show", ""); }, 3000);
+        }
+
+        // Function to handle sign up
+        function handleSignUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validate inputs
+            if (!email || !password || !confirmPassword) {
+                showSnackbar("Please fill in all fields");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showSnackbar("Passwords do not match");
+                return;
+            }
+
+            if (password.length < 6) {
+                showSnackbar("Password should be at least 6 characters");
+                return;
+            }
+
+            // Create user with email and password
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed up successfully
+                    showSnackbar("Account created successfully!");
+                    setTimeout(() => {
+                        window.location.href = "index.html"; // Redirect to main page
+                    }, 1500);
+                })
+                .catch((error) => {
+                    showSnackbar(error.message);
+                    console.error(error);
+                });
+        }
+    </script>
+</head>
+<body class="bg-white flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md">
+        <div class="flex justify-between items-center mb-6">
+            <i class="fas fa-times text-2xl"></i>
+            <div></div>
+        </div>
+        <h1 class="text-2xl font-semibold mb-6">Sign up with Email</h1>
+        <div class="border rounded-lg p-4 mb-4">
+            <label class="block text-gray-500 text-sm mb-2">Email</label>
+            <input type="email" id="email" class="w-full border-none focus:outline-none" placeholder="Enter your email">
+        </div>
+        <div class="border rounded-lg p-4 mb-4">
+            <label class="block text-gray-500 text-sm mb-2">Password</label>
+            <input type="password" id="password" class="w-full border-none focus:outline-none" placeholder="Enter your password">
+        </div>
+        <div class="border rounded-lg p-4 mb-4">
+            <label class="block text-gray-500 text-sm mb-2">Confirm Password</label>
+            <input type="password" id="confirmPassword" class="w-full border-none focus:outline-none" placeholder="Confirm your password">
+        </div>
+        <button onclick="handleSignUp()" class="w-full bg-[#007dd1] text-white py-3 rounded-lg hover:bg-[#005fa3]">Sign Up</button>
+    </div>
+    <div id="snackbar" class="snackbar"></div>
+</body>
+</html>

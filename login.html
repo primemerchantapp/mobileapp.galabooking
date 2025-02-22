@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in or Sign up with Gala</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Gala&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Gala', sans-serif;
+        }
+        .snackbar {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+        }
+        .snackbar.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @-webkit-keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @-webkit-keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+    </style>
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script>
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
+      authDomain: "ces-project-f8b4e.firebaseapp.com",
+      databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ces-project-f8b4e",
+      storageBucket: "ces-project-f8b4e.firebasestorage.app",
+      messagingSenderId: "580767851656",
+      appId: "1:580767851656:web:2c852e7edb81a6decdeb3d",
+      measurementId: "G-K73DSMWBTP"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Snackbar function
+        function showSnackbar(message) {
+            var snackbar = document.getElementById("snackbar");
+            snackbar.innerText = message;
+            snackbar.className = "snackbar show";
+            setTimeout(function(){ snackbar.className = snackbar.className.replace("show", ""); }, 3000);
+        }
+
+        let verificationId; // Store verification ID globally
+        let confirmationResultGlobal; // Store confirmationResult globally
+
+        function sendVerificationCode() {
+            var phoneNumber = document.getElementById('phoneNumber').value;
+            if (!phoneNumber) {
+                showSnackbar("Please enter a phone number.");
+                return;
+            }
+
+            // reCAPTCHA verifier
+            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('sign-in-button', {
+              'size': 'invisible',
+            });
+
+            var appVerifier = window.recaptchaVerifier;
+
+            firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
+                .then(function (confirmationResult) {
+                    window.confirmationResultGlobal = confirmationResult; // Store confirmationResult globally
+                    verificationId = confirmationResult.verificationId; // Store verificationId
+                    showSnackbar('Verification code sent to ' + phoneNumber);
+
+                    // Redirect to verify.html, passing verificationId and phoneNumber as URL parameters
+                    window.location.href = `verify.html?verificationId=${verificationId}&phoneNumber=${phoneNumber}`;
+
+
+                }).catch(function (error) {
+                    console.error("Error sending verification code:", error);
+                    showSnackbar('Error sending verification code: ' + error.message);
+                    window.recaptchaVerifier.render().then(function(widgetId) {
+                      grecaptcha.reset(widgetId);
+                    });
+            });
+        }
+
+
+        function signInWithEmail() {
+            var provider = new firebase.auth.EmailAuthProvider();
+            firebase.auth().signInWithPopup(provider).then(function(result) {
+                showSnackbar("Signed in with Email successfully!");
+                window.location.href = "index.html";
+            }).catch(function(error) {
+                showSnackbar("Error: " + error.message);
+            });
+        }
+
+        function signInWithGoogle() {
+            var provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithPopup(provider).then(function(result) {
+                showSnackbar("Signed in with Google successfully!");
+                window.location.href = "index.html";
+            }).catch(function(error) {
+                showSnackbar("Error: " + error.message);
+            });
+        }
+
+        function signInWithApple() {
+            var provider = new firebase.auth.OAuthProvider('apple.com');
+            firebase.auth().signInWithPopup(provider).then(function(result) {
+                showSnackbar("Signed in with Apple successfully!");
+                window.location.href = "index.html";
+            }).catch(function(error) {
+                showSnackbar("Error: " + error.message);
+            });
+        }
+    </script>
+</head>
+<body class="bg-white flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md">
+        <div class="flex justify-between items-center mb-6">
+            <i class="fas fa-times text-2xl"></i>
+            <div></div>
+        </div>
+        <h1 class="text-2xl font-semibold mb-6">Log in or sign up with Gala</h1>
+
+        <div id="phoneInputSection" class="border rounded-lg p-4 mb-4">
+            <label class="block text-gray-500 text-sm mb-2">Country/Region</label>
+            <div class="flex justify-between items-center border-b pb-2 mb-2">
+                <span>Philippines (+63)</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <label class="block text-gray-500 text-sm mb-2">Phone number</label>
+            <input type="text" id="phoneNumber" class="w-full border-none focus:outline-none" placeholder="+63" autocomplete="tel">
+        </div>
+
+        <p class="text-gray-500 text-sm mb-6">We’ll call or text you to confirm your number. Standard message and data rates apply.</p>
+        <div id="sign-in-button"></div> <!-- Invisible reCAPTCHA -->
+        <button onclick="sendVerificationCode()" class="w-full bg-[#007dd1] text-white py-3 rounded-lg mb-4 hover:bg-[#005fa3]" id="continueButton">Continue</button>
+
+
+        <div class="flex items-center mb-4">
+            <hr class="flex-grow border-gray-300">
+            <span class="px-2 text-gray-500">or</span>
+            <hr class="flex-grow border-gray-300">
+        </div>
+        <button onclick="window.location.href='email-auth.html'" class="w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center mb-4 hover:bg-gray-100">
+            <i class="fas fa-envelope text-lg mr-2"></i>
+            Continue with Email
+        </button>
+        <button onclick="signInWithGoogle()" class="w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center mb-4 hover:bg-gray-100">
+            <i class="fab fa-google text-lg text-red-600 mr-2"></i>
+            Continue with Google
+        </button>
+        <button onclick="signInWithApple()" class="w-full border border-gray-300 py-3 rounded-lg flex items-center justify-center hover:bg-gray-100">
+            <i class="fab fa-apple text-lg mr-2"></i>
+            Continue with Apple
+        </button>
+    </div>
+    <div id="snackbar" class="snackbar"></div>
+</body>
+</html>

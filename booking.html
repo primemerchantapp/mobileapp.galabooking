@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Booking - GalBooker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Roboto', sans-serif;
+        }
+        .booking-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+        .booking-summary {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .payment-methods {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .payment-method {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .payment-method.selected {
+            border-color: #007dd1;
+            background-color: #f0f7ff;
+        }
+        .btn-primary {
+            background-color: #007dd1;
+            border-color: #007dd1;
+            padding: 0.75rem 2rem;
+            font-weight: 500;
+        }
+        .btn-primary:hover {
+            background-color: #0066b0;
+            border-color: #0066b0;
+        }
+        .price {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #007dd1;
+        }
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+        }
+        .loading-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .back-btn {
+            color: #007dd1;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .back-btn:hover {
+            color: #0066b0;
+        }
+    </style>
+</head>
+<body>
+    <div class="booking-container">
+        <a href="#" class="back-btn" onclick="history.back(); return false;">
+            <i class="fas fa-arrow-left me-2"></i> Back to property
+        </a>
+        
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Complete your booking</h2>
+                
+                <div class="booking-summary mb-4">
+                    <h5>Booking Summary</h5>
+                    <div id="propertyName" class="fw-bold mb-2"></div>
+                    <div id="bookingDates" class="text-muted small"></div>
+                    <div id="guestCount" class="text-muted small mb-2"></div>
+                    <div class="price" id="totalPrice"></div>
+                </div>
+
+                <form id="paymentForm" class="needs-validation" novalidate>
+                    <div class="mb-4">
+                        <h5>Payment Method</h5>
+                        <div class="payment-methods">
+                            <div class="payment-method selected" onclick="selectPaymentMethod(this)" role="button" aria-label="Select Credit Card payment method">
+                                <i class="fas fa-credit-card me-2"></i>
+                                Credit Card
+                            </div>
+                            <div class="payment-method" onclick="selectPaymentMethod(this)" role="button" aria-label="Select Google Pay payment method">
+                                <i class="fab fa-google-pay me-2"></i>
+                                Google Pay
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="creditCardForm">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Card Number</label>
+                                <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" required
+                                    pattern="[0-9\s]{19}" maxlength="19"
+                                    oninput="this.value = this.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim()">
+                                <div class="invalid-feedback">Please enter a valid card number</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY" required
+                                    pattern="(0[1-9]|1[0-2])\/([0-9]{2})" maxlength="5"
+                                    oninput="this.value = this.value.replace(/[^\d]/g, '').replace(/^(.{2})/, '$1/').substr(0,5)">
+                                <div class="invalid-feedback">Please enter a valid expiry date (MM/YY)</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">CVV</label>
+                                <input type="text" class="form-control" id="cvv" placeholder="123" required
+                                    pattern="[0-9]{3,4}" maxlength="4"
+                                    oninput="this.value = this.value.replace(/[^\d]/g, '')">
+                                <div class="invalid-feedback">Please enter a valid CVV</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Name on Card</label>
+                            <input type="text" class="form-control" id="cardName" placeholder="John Doe" required>
+                            <div class="invalid-feedback">Please enter the name on your card</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Billing Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                        <div class="invalid-feedback">Please enter a valid email address</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Special Requests (Optional)</label>
+                        <textarea class="form-control" id="specialRequests" rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Complete Booking</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div>Processing your booking...</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
+            authDomain: "ces-project-f8b4e.firebaseapp.com",
+            databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ces-project-f8b4e",
+            storageBucket: "ces-project-f8b4e.firebasestorage.app",
+            messagingSenderId: "580767851656",
+            appId: "1:580767851656:web:2c852e7edb81a6decdeb3d",
+            measurementId: "G-K73DSMWBTP"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Authentication check
+        firebase.auth().onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        });
+
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        let propertyDetails = null;
+
+        async function loadBookingDetails() {
+            const propertyId = getUrlParameter('propertyId');
+            const checkIn = getUrlParameter('checkIn');
+            const checkOut = getUrlParameter('checkOut');
+            const guests = getUrlParameter('guests');
+
+            try {
+                const doc = await firebase.firestore().collection('properties')
+                    .doc(propertyId).get();
+
+                if (!doc.exists) {
+                    console.error('Property not found');
+                    return;
+                }
+
+                propertyDetails = {
+                    id: doc.id,
+                    ...doc.data(),
+                    checkIn,
+                    checkOut,
+                    guests,
+                    numberOfNights: calculateNights(checkIn, checkOut)
+                };
+
+                // Update the booking summary
+                document.getElementById('propertyName').textContent = propertyDetails.propertyName;
+                document.getElementById('bookingDates').textContent = 
+                    `${formatDate(checkIn)} - ${formatDate(checkOut)}`;
+                document.getElementById('guestCount').textContent = guests;
+                
+                const totalPrice = propertyDetails.numberOfNights * propertyDetails.price;
+                document.getElementById('totalPrice').textContent = 
+                    `₱${totalPrice.toLocaleString()} (₱${propertyDetails.price.toLocaleString()} × ${propertyDetails.numberOfNights} nights)`;
+                
+            } catch (error) {
+                console.error('Error loading property details:', error);
+            }
+        }
+
+        function calculateNights(checkIn, checkOut) {
+            const start = new Date(checkIn);
+            const end = new Date(checkOut);
+            const diffTime = Math.abs(end - start);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function formatDate(dateStr) {
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            return new Date(dateStr).toLocaleDateString('en-US', options);
+        }
+
+        function selectPaymentMethod(element) {
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            
+            // Toggle credit card form visibility
+            document.getElementById('creditCardForm').style.display = 
+                element.textContent.trim() === 'Credit Card' ? 'block' : 'none';
+        }
+
+        document.getElementById('paymentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+                this.classList.add('was-validated');
+                return;
+            }
+
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'block';
+
+            try {
+                const currentUser = firebase.auth().currentUser;
+                
+                // Simulate payment processing
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Create booking record in Firestore
+                const bookingRef = await firebase.firestore().collection('bookings').add({
+                    userId: currentUser.uid,
+                    propertyId: propertyDetails.id,
+                    propertyName: propertyDetails.propertyName,
+                    checkIn: propertyDetails.checkIn,
+                    checkOut: propertyDetails.checkOut,
+                    guests: propertyDetails.guests,
+                    numberOfNights: propertyDetails.numberOfNights,
+                    totalPrice: propertyDetails.numberOfNights * propertyDetails.price,
+                    status: 'confirmed',
+                    paymentMethod: document.querySelector('.payment-method.selected').textContent.trim(),
+                    email: document.getElementById('email').value,
+                    specialRequests: document.getElementById('specialRequests').value,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Redirect to success page or show success message
+                alert('Booking confirmed! Redirecting to home page...');
+                window.location.href = 'index.html';
+
+            } catch (error) {
+                console.error('Error processing booking:', error);
+                alert('There was an error processing your booking. Please try again.');
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        });
+
+        // Load booking details when page loads
+        document.addEventListener('DOMContentLoaded', loadBookingDetails);
+    </script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta name="theme-color" content="#007dd1"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <link rel="apple-touch-icon" href="assets/css/images/logo/nobg-logo.png"/>
+  <link rel="manifest" href="manifest.json"/>
+  <title>Explore - Gala</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
+      authDomain: "ces-project-f8b4e.firebaseapp.com",
+      databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ces-project-f8b4e",
+      storageBucket: "ces-project-f8b4e.firebasestorage.app",
+      messagingSenderId: "580767851656",
+      appId: "1:580767851656:web:2c852e7edb81a6decdeb3d",
+      measurementId: "G-K73DSMWBTP"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007dd1'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { 
+      font-family: 'Roboto', sans-serif;
+      background-color: #F7F7F7;
+    }
+    .header-container {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .search-box:focus {
+      box-shadow: 0 0 0 2px #007dd1;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+
+  <div class="header-container shadow-sm">
+    <div class="sticky-header flex flex-col bg-white border-b w-full">
+      <div class="flex justify-between items-center p-4">
+        <a href="wishlists.html" class="text-xl hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+          <i class="fas fa-heart"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-primary">Gala</h1>
+        <a href="notifications.html" class="text-xl hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+          <i class="fas fa-bell"></i>
+        </a>
+      </div>
+      <div class="px-4 pb-4">
+        <div class="relative">
+          <input type="text" 
+                 id="searchInput"
+                 class="search-box w-full px-4 py-3 bg-white border rounded-lg pl-10 focus:outline-none" 
+                 placeholder="Search by location, property type, or amenities"/>
+          <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-4 pb-24">
+    <!-- Popular Destinations -->
+    <section class="mb-8">
+      <h2 class="text-xl font-bold mb-4">Popular Destinations</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="relative rounded-lg overflow-hidden h-40 cursor-pointer" onclick="searchDestination('Boracay')">
+          <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e" 
+               alt="Boracay" 
+               class="w-full h-full object-cover"/>
+          <div class="absolute inset-0 bg-black bg-opacity-30"></div>
+          <div class="absolute bottom-3 left-3 text-white">
+            <h3 class="font-bold">Boracay</h3>
+            <p class="text-sm">Beach Paradise</p>
+          </div>
+        </div>
+        <div class="relative rounded-lg overflow-hidden h-40 cursor-pointer" onclick="searchDestination('Palawan')">
+          <img src="https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86" 
+               alt="Palawan" 
+               class="w-full h-full object-cover"/>
+          <div class="absolute inset-0 bg-black bg-opacity-30"></div>
+          <div class="absolute bottom-3 left-3 text-white">
+            <h3 class="font-bold">Palawan</h3>
+            <p class="text-sm">Island Adventure</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="mb-8">
+      <h2 class="text-xl font-bold mb-4">Browse by Category</h2>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="category-card p-4 bg-white rounded-lg text-center cursor-pointer shadow-sm" onclick="filterByCategory('hotels')">
+          <i class="fas fa-hotel text-2xl text-primary mb-2"></i>
+          <p class="text-sm">Hotels</p>
+        </div>
+        <div class="category-card p-4 bg-white rounded-lg text-center cursor-pointer shadow-sm" onclick="filterByCategory('resorts')">
+          <i class="fas fa-umbrella-beach text-2xl text-primary mb-2"></i>
+          <p class="text-sm">Resorts</p>
+        </div>
+        <div class="category-card p-4 bg-white rounded-lg text-center cursor-pointer shadow-sm" onclick="filterByCategory('apartments')">
+          <i class="fas fa-building text-2xl text-primary mb-2"></i>
+          <p class="text-sm">Apartments</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Properties -->
+    <section class="mb-8">
+      <h2 class="text-xl font-bold mb-4">Featured Properties</h2>
+      <div id="featuredProperties" class="space-y-4">
+        <div id="loading" class="text-center py-4">
+          <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="fixed bottom-0 left-0 right-0 w-full bg-white border-t shadow">
+    <div class="flex justify-around py-2">
+      <a href="explore.html" class="flex flex-col items-center text-blue-500 hover:text-blue-600 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-search text-xl"></i> 
+        <span class="text-xs mt-1">Explore</span>
+      </a>
+      <a href="wishlists.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-heart text-xl"></i>
+        <span class="text-xs mt-1">Wishlists</span>
+      </a>
+      <a href="index.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-taxi text-xl"></i>
+        <span class="text-xs mt-1">Gala</span>
+      </a>
+      <a href="messages.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-comment text-xl"></i>
+        <span class="text-xs mt-1">Messages</span>
+      </a>
+      <a href="profile.html" class="flex flex-col items-center hover:text-blue-500 transition-colors duration-200 cursor-pointer">
+        <i class="fas fa-user text-xl"></i>
+        <span class="text-xs mt-1">Profile</span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const featuredProperties = document.getElementById('featuredProperties');
+    const loading = document.getElementById('loading');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const query = e.target.value.trim().toLowerCase();
+        if (query) {
+          searchProperties(query);
+        } else {
+          loadFeaturedProperties();
+        }
+      }, 300);
+    });
+
+    async function searchProperties(query) {
+      loading.style.display = 'block';
+      featuredProperties.innerHTML = '';
+
+      try {
+        const snapshot = await firebase.firestore()
+          .collection('properties')
+          .where('searchKeywords', 'array-contains', query)
+          .limit(10)
+          .get();
+
+        renderProperties(snapshot);
+      } catch (error) {
+        console.error('Error searching properties:', error);
+        showError();
+      }
+    }
+
+    function searchDestination(destination) {
+      searchInput.value = destination;
+      searchProperties(destination.toLowerCase());
+    }
+
+    function filterByCategory(category) {
+      searchInput.value = category;
+      searchProperties(category.toLowerCase());
+    }
+
+    async function loadFeaturedProperties() {
+      loading.style.display = 'block';
+      featuredProperties.innerHTML = '';
+
+      try {
+        const snapshot = await firebase.firestore()
+          .collection('properties')
+          .where('featured', '==', true)
+          .limit(5)
+          .get();
+
+        renderProperties(snapshot);
+      } catch (error) {
+        console.error('Error loading featured properties:', error);
+        showError();
+      }
+    }
+
+    function renderProperties(snapshot) {
+      loading.style.display = 'none';
+      
+      if (snapshot.empty) {
+        featuredProperties.innerHTML = `
+          <div class="text-center text-gray-500 py-8">
+            <p>No properties found</p>
+          </div>
+        `;
+        return;
+      }
+
+      snapshot.forEach(doc => {
+        const property = doc.data();
+        const location = property.location || {};
+        const address = [
+          location.streetAddress,
+          location.barangay,
+          location.city,
+          location.province
+        ].filter(Boolean).join(', ');
+
+        featuredProperties.innerHTML += `
+          <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="relative">
+              <img src="${property.imageUrls?.[0] || 'assets/css/images/logo/hotels/151519329.jpg'}" 
+                   alt="${property.propertyName}" 
+                   class="w-full h-48 object-cover"/>
+              <button onclick="toggleWishlist('${doc.id}')" class="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md">
+                <i class="fas fa-heart ${property.isWishlisted ? 'text-red-500' : 'text-gray-400'}"></i>
+              </button>
+            </div>
+            <div class="p-4">
+              <h3 class="font-bold text-lg">${property.propertyName}</h3>
+              <p class="text-gray-600 text-sm mb-2">${address}</p>
+              <div class="flex items-center gap-2 mb-2">
+                ${property.rating ? `
+                  <div class="flex items-center">
+                    <i class="fas fa-star text-yellow-400"></i>
+                    <span class="ml-1 text-sm">${property.rating}</span>
+                  </div>
+                ` : ''}
+                ${property.reviews ? `
+                  <span class="text-sm text-gray-600">(${property.reviews} reviews)</span>
+                ` : ''}
+              </div>
+              <div class="flex justify-between items-center">
+                <div>
+                  <span class="text-primary font-bold">₱${property.price?.toLocaleString()}</span>
+                  <span class="text-gray-600 text-sm">/night</span>
+                </div>
+                <button class="bg-primary text-white px-4 py-2 rounded-lg text-sm">View Details</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function toggleWishlist(propertyId) {
+      try {
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+
+        const wishlistRef = firebase.firestore()
+          .collection('wishlists')
+          .doc(user.uid)
+          .collection('properties')
+          .doc(propertyId);
+
+        const doc = await wishlistRef.get();
+        
+        if (doc.exists) {
+          await wishlistRef.delete();
+        } else {
+          await wishlistRef.set({
+            addedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+      } catch (error) {
+        console.error('Error toggling wishlist:', error);
+      }
+    }
+
+    function showError() {
+      featuredProperties.innerHTML = `
+        <div class="text-center text-red-500 py-4">
+          <p>Error loading properties. Please try again.</p>
+        </div>
+      `;
+      loading.style.display = 'none';
+    }
+
+    // Initial load
+    loadFeaturedProperties();
+  </script>
+</body>
+</html>
